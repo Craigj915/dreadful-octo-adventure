@@ -10,12 +10,19 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static utils.Constants.PlayerConstants.*;
+import static utils.Constants.Directions.*;
+
 public class GamePanel extends JPanel {
     private MouseInputs mouseInputs;
     private float yDelta = 100, xDelta = 100;
     private BufferedImage img;
-    private BufferedImage[] spawnAnim, idleAnim;
-    private int animTick, animIndex, animSpeed = 30;
+    private BufferedImage[][] animations;
+    private int animTick, animIndex, animSpeed = 16;
+    private int playerAction = SPAWN;
+    private int playerDirection = -1;
+    private boolean moving = false;
+    private boolean spawned = false;
     public GamePanel() {
         mouseInputs= new MouseInputs(this);
 
@@ -28,19 +35,11 @@ public class GamePanel extends JPanel {
         addMouseMotionListener(mouseInputs);
     }
     private void loadAnimations() {
-        spawnAnim = new BufferedImage[19];
-        // Load the first set of images (0 to 9) with y-coordinate 6*64
-        for (int i = 0; i < 10; i++) {
-            spawnAnim[i] = img.getSubimage(i * 64,6 * 64,64,64);
-        }
-        // Load the second set of images (10 to 18) with y-coordinate 7*64
-        for (int j = 10; j < 19; j++) {
-            spawnAnim[j] = img.getSubimage((j - 10) * 64,7 * 64,64,64);
-        }
-        idleAnim = new BufferedImage[2];
-
-        for (int i = 0; i < 2; i++) {
-            idleAnim[i] = img.getSubimage(i * 64,0,64,64);
+        animations = new BufferedImage[10][25];
+        for (int i = 0; i < animations.length; i++) {
+            for (int j = 0; j < animations[i].length; j++) {
+                animations[i][j] = img.getSubimage(j * 96,i * 80,96,80);
+            }
         }
     }
     private void importImage() {
@@ -58,23 +57,12 @@ public class GamePanel extends JPanel {
             }
         }
     }
-    private void updateSpawnAnimationTick() {
+    private void updateAnimationTick() {
         animTick++;
         if (animTick >= animSpeed) {
             animTick = 0;
             animIndex++;
-            if (animIndex >= spawnAnim.length) {
-                updateIdleAnim();
-            }
-        }
-    }
-
-    private void updateIdleAnim() {
-        animTick++;
-        if (animTick >= animSpeed) {
-            animTick = 0;
-            animIndex++;
-            if (animIndex >= idleAnim.length) {
+            if (animIndex >= GetSpriteAmount(playerAction)) {
                 animIndex = 0;
             }
         }
@@ -86,23 +74,58 @@ public class GamePanel extends JPanel {
         setPreferredSize(size);
         setMaximumSize(size);
     }
-
     public void changeXDelta(int value) {
         this.xDelta += value;
     }
     public void changeYDelta(int value) {
         this.yDelta += value;
     }
-    public void setCharaPos(int x, int y) {
-        this.xDelta = x;
-        this.yDelta = y;
+    public void setSpawned(boolean spawned) {
+        this.spawned = spawned;
+    }
+    public void setDirection(int direction) {
+        this.playerDirection = direction;
+        moving = true;
+    }
+    public void setMoving(boolean moving) {
+        this.moving = moving;
+    }
+    private void setAnimation() {
+        if (!spawned) {
+            playerAction = SPAWN;
+            if (animIndex == GetSpriteAmount(SPAWN) - 1) {
+                spawned = true;
+            }
+        } else {
+            playerAction = IDLE;
+            if (moving && playerDirection == LEFT) {
+                playerAction = RUN_LEFT;
+            } else if (moving && playerDirection == RIGHT){
+                playerAction = RUN_RIGHT;
+            } else if (moving && playerDirection == UP){
+                playerAction = JUMP;
+            }  else if (moving && playerDirection == DOWN){
+                playerAction = FALL;
+            }
+        }
+    }
+    private void updatePosition() {
+        if (moving) {
+            switch (playerDirection) {
+                case UP -> yDelta -=5;
+                case DOWN -> yDelta +=5;
+                case LEFT -> xDelta -=5;
+                case RIGHT -> xDelta+=5;
+            }
+        }
     }
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        updateAnimationTick();
+        setAnimation();
+        updatePosition();
 
-        updateSpawnAnimationTick();
-
-        g.drawImage(spawnAnim[animIndex],(int)xDelta,(int)yDelta,null);
+        g.drawImage(animations[playerAction][animIndex],(int)xDelta,(int)yDelta,512,448,null);
 
     }
 
