@@ -18,11 +18,12 @@ public class GamePanel extends JPanel {
     private float yDelta = 100, xDelta = 100;
     private BufferedImage img;
     private BufferedImage[][] animations;
-    private int animTick, animIndex, animSpeed = 16;
+    private int animTick, animIndex, animSpeed = 24;
     private int playerAction = SPAWN;
     private int playerDirection = -1;
     private boolean moving = false;
     private boolean spawned = false;
+    private boolean interacting = false;
     public GamePanel() {
         mouseInputs= new MouseInputs(this);
 
@@ -67,7 +68,6 @@ public class GamePanel extends JPanel {
             }
         }
     }
-
     private void setPannelSize() {
         Dimension size = new Dimension(1280,720);
         setMinimumSize(size);
@@ -90,6 +90,9 @@ public class GamePanel extends JPanel {
     public void setMoving(boolean moving) {
         this.moving = moving;
     }
+    public void setInteracting(boolean interacting) {
+        this.interacting = interacting;
+    }
     private void setAnimation() {
         if (!spawned) {
             playerAction = SPAWN;
@@ -103,9 +106,14 @@ public class GamePanel extends JPanel {
             } else if (moving && playerDirection == RIGHT){
                 playerAction = RUN_RIGHT;
             } else if (moving && playerDirection == UP){
+                // OR JUMPING
                 playerAction = JUMP;
             }  else if (moving && playerDirection == DOWN){
+                // OR FALLING
                 playerAction = FALL;
+            }
+            if (interacting) {
+                playerAction = INTERACT;
             }
         }
     }
@@ -119,15 +127,14 @@ public class GamePanel extends JPanel {
             }
         }
     }
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
+    public void updateGame() {
         updateAnimationTick();
         setAnimation();
         updatePosition();
+    }
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
 
         g.drawImage(animations[playerAction][animIndex],(int)xDelta,(int)yDelta,512,448,null);
-
     }
-
-
 }
