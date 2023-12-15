@@ -5,8 +5,6 @@ import main.GamePanel;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-import static utils.Constants.Directions.*;
-
 public class KeyboardInputs implements KeyListener {
     private GamePanel gamePanel;
     public KeyboardInputs(GamePanel gamePanel) {
@@ -14,23 +12,24 @@ public class KeyboardInputs implements KeyListener {
     }
     @Override
     public void keyTyped(KeyEvent e) {
-        System.out.println("Hello");
     }
     @Override
     public void keyPressed(KeyEvent e) {
         switch (e.getKeyCode()) {
-            case KeyEvent.VK_UP -> gamePanel.setDirection(UP);
-            case KeyEvent.VK_DOWN -> gamePanel.setDirection(DOWN);
-            case KeyEvent.VK_LEFT -> gamePanel.setDirection(LEFT);
-            case KeyEvent.VK_RIGHT -> gamePanel.setDirection(RIGHT);
-            case KeyEvent.VK_E -> gamePanel.setInteracting(true);
+            case KeyEvent.VK_UP -> gamePanel.getGame().getPlayer().setJumping(true);
+            case KeyEvent.VK_DOWN -> gamePanel.getGame().getPlayer().setFalling(true);
+            case KeyEvent.VK_LEFT -> gamePanel.getGame().getPlayer().setLeft(true);
+            case KeyEvent.VK_RIGHT -> gamePanel.getGame().getPlayer().setRight(true);
+            case KeyEvent.VK_E -> gamePanel.getGame().getPlayer().setInteracting(true);
+            case KeyEvent.VK_W -> gamePanel.getGame().getPlayer().setAttacking(true);
+            case KeyEvent.VK_Q -> gamePanel.getGame().getPlayer().setHeavyAttacking(true);
         }
     }
     @Override
     public void keyReleased(KeyEvent e) {
         switch (e.getKeyCode()) {
-            case KeyEvent.VK_UP, KeyEvent.VK_RIGHT, KeyEvent.VK_DOWN, KeyEvent.VK_LEFT -> gamePanel.setMoving(false);
-            case KeyEvent.VK_E -> gamePanel.setInteracting(false);
+            case KeyEvent.VK_LEFT -> gamePanel.getGame().getPlayer().setLeft(false);
+            case KeyEvent.VK_RIGHT -> gamePanel.getGame().getPlayer().setRight(false);
         }
     }
 }
